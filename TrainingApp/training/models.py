@@ -11,8 +11,8 @@ class Category(models.Model):
 class Workout(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='workouts')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_workouts')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -28,6 +28,7 @@ class Challenge(models.Model):
         return self.title
 
 class Achievement(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='achievements')
     title = models.CharField(max_length=100)
     description = models.TextField()
     criteria = models.CharField(max_length=100)
@@ -36,15 +37,22 @@ class Achievement(models.Model):
         return self.title
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    points = models.IntegerField(default=0)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    photo = models.ImageField(upload_to='profile_photos', default='default.jpg')
+
+    def create_user_profile(sender, instance, created, **kwargs):
+        if created:
+            UserProfile.objects.create(user=instance)
+
 
     def __str__(self):
         return self.user.username
 
+    models.signals.post_save.connect(create_user_profile, sender=User)
+
 class UserWorkout(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_workouts')
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name='user_workouts')
     completed = models.BooleanField(default=False)
     date_completed = models.DateField(null=True, blank=True)
 
@@ -52,8 +60,8 @@ class UserWorkout(models.Model):
         return f"{self.user.username} - {self.workout.title}"
 
 class UserChallenge(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_challenges')
+    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='user_challenges')
     completed = models.BooleanField(default=False)
     date_completed = models.DateField(null=True, blank=True)
 
