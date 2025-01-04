@@ -1,0 +1,75 @@
+{% extends 'training/base.html' %}
+
+{% block title %}Select a New Workout{% endblock %}
+
+{% block content %}
+<h1>Select a New Workout</h1>
+
+<h2>Special Workouts</h2>
+<div id="admin-workouts" class="workouts-container">
+    {% for workout in admin_workouts %}
+        <div class="workout-item">
+            <h3>{{ workout.title }}</h3>
+            <p><strong>Difficulty:</strong> {{ workout.difficulty }}</p>
+            <p><strong>Duration:</strong> {{ workout.duration }} hours</p>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                {% for step in workout.steps.splitlines %}
+                    <li>{{ step }}</li>
+                {% endfor %}
+            </ol>
+            {% if workout.id not in user_workout_ids %}
+                <button onclick="addToYourWorkouts({{ workout.id }})">Add to Your Workouts</button>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    function addToYourWorkouts(workoutId) {
+        fetch(`/add_to_your_workouts/${workoutId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to add workout.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding workout:', error);
+        });
+    }
+</script>
+
+<style>
+    .workouts-container {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 20px;
+        justify-content: center;
+        overflow-x: auto;
+    }
+    .workout-item {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        min-width: 300px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .workout-item h3 {
+        margin-top: 0;
+    }
+    .workout-item p {
+        margin: 5px 0;
+    }
+    .workout-item ol {
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}

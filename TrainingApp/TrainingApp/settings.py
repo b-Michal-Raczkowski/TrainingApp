@@ -82,8 +82,7 @@ AUTHENTICATION_BACKENDS = (
     'training.backends.EmailOrUsernameModelBackend',
 )
 
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 300
+
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
@@ -106,3 +105,5 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+

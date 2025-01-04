@@ -8,15 +8,27 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 class Workout(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='workouts')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_workouts')
+    title = models.CharField(max_length=255)
+    difficulty = models.CharField(max_length=50)
+    duration = models.IntegerField()
+    steps = models.TextField()
+    is_admin = models.BooleanField(default=False)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
+
+class UserWorkout(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+    deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.workout.title}"
 
 class Challenge(models.Model):
     title = models.CharField(max_length=100)
@@ -49,15 +61,6 @@ class UserProfile(models.Model):
         return self.user.username
 
     models.signals.post_save.connect(create_user_profile, sender=User)
-
-class UserWorkout(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_workouts')
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name='user_workouts')
-    completed = models.BooleanField(default=False)
-    date_completed = models.DateField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.workout.title}"
 
 class UserChallenge(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_challenges')
