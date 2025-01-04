@@ -6,8 +6,8 @@
 <h1>Select a New Workout</h1>
 
 <h2>Special Workouts</h2>
-<div id="admin-workouts" class="workouts-container">
-    {% for workout in admin_workouts %}
+<div id="special-workouts" class="workouts-container">
+    {% for workout in special_workouts %}
         <div class="workout-item">
             <h3>{{ workout.title }}</h3>
             <p><strong>Difficulty:</strong> {{ workout.difficulty }}</p>

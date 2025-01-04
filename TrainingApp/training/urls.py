@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from django.contrib.auth import views as auth_views
 from .views import CustomLoginView, custom_logout_view
 
 urlpatterns = [
@@ -14,8 +13,10 @@ urlpatterns = [
     path('delete_workout/<int:workout_id>/', views.delete_workout, name='delete_workout'),
     path('select_new_workout/', views.select_new_workout, name='select_new_workout'),
     path('add_to_your_workouts/<int:workout_id>/', views.add_to_your_workouts, name='add_to_your_workouts'),
-    path('create_workout/', views.create_workout, name='create_workout'),
     path('delete_user_workout/<int:workout_id>/', views.delete_user_workout, name='delete_user_workout'),
-
-
+    path('achievements/', views.achievements_view, name='achievements'),
+    path('edit_workout/<int:workout_id>/', views.edit_workout, name='edit_workout'),
+    path('special_workouts/', views.special_workouts, name='special_workouts'),
+    path('post_achievement/<int:workout_id>/', views.post_achievement, name='post_achievement'),
+    path('complete_special_workout/<int:workout_id>/', views.complete_special_workout, name='complete_special_workout')
 ]

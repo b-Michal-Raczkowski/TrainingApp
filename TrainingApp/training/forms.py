@@ -1,5 +1,5 @@
 from django import forms
-from .models import User, Workout
+from .models import User, Workout, Achievement
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -18,6 +18,13 @@ class UserRegistrationForm(forms.ModelForm):
 class WorkoutForm(forms.ModelForm):
     class Meta:
         model = Workout
-        fields = ['title', 'steps', 'difficulty', 'duration']
+        fields = ['title', 'created_by', 'steps', 'difficulty', 'duration']
+
+class SpecialWorkoutForm(forms.ModelForm):
+    achievement = forms.ModelChoiceField(queryset=Achievement.objects.all(), required=True)
+
+    class Meta:
+        model = Workout
+        fields = ['title', 'difficulty', 'duration', 'steps', 'achievement']
 
 

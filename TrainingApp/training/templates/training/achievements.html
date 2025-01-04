@@ -1,0 +1,60 @@
+{% extends 'training/base.html' %}
+
+{% block title %}Your Achievements{% endblock %}
+
+{% block content %}
+<style>
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    .card-body p {
+        margin: 0;
+    }
+</style>
+
+<h1>Your Achievements</h1>
+<h2>Collected Achievements</h2>
+{% if collected_achievements %}
+    <div class="row">
+        {% for achievement in collected_achievements %}
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ achievement.title }}</h5>
+                        <p>{{ achievement.description }}</p>
+                        <p><strong>Date Achieved:</strong> {{ achievement.date_achieved }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>You have not achieved any achievements yet.</p>
+{% endif %}
+
+<h2>Uncollected Achievements</h2>
+{% if uncollected_achievements %}
+    <div class="row">
+        {% for achievement in uncollected_achievements %}
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ achievement.title }}</h5>
+                        <p>{{ achievement.description }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>All achievements have been collected.</p>
+{% endif %}
+{% endblock %}

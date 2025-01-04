@@ -8,6 +8,15 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class Achievement(models.Model):
+    date_achieved = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    count = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.title
 
 class Workout(models.Model):
     title = models.CharField(max_length=255)
@@ -17,6 +26,7 @@ class Workout(models.Model):
     is_admin = models.BooleanField(default=False)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    achievement = models.ManyToManyField(Achievement, blank=True)
 
     def __str__(self):
         return self.title
@@ -25,28 +35,9 @@ class UserWorkout(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     added_at = models.DateTimeField(auto_now_add=True)
-    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.workout.title}"
-
-class Challenge(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-    goal = models.CharField(max_length=100)
-    reward_points = models.IntegerField()
-
-    def __str__(self):
-        return self.title
-
-class Achievement(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='achievements')
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-    criteria = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.title
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -56,17 +47,7 @@ class UserProfile(models.Model):
         if created:
             UserProfile.objects.create(user=instance)
 
-
     def __str__(self):
         return self.user.username
 
     models.signals.post_save.connect(create_user_profile, sender=User)
-
-class UserChallenge(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_challenges')
-    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='user_challenges')
-    completed = models.BooleanField(default=False)
-    date_completed = models.DateField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.challenge.title}"

@@ -15,7 +15,6 @@
             background-color: #333;
             padding: 10px;
         }
-
         .navbar .title {
             color: white;
             font-size: 24px;
@@ -53,6 +52,7 @@
             overflow-x: hidden;
             transition: 0.5s;
             padding-top: 60px;
+            z-index: 1000; /* Ensure the sidebar is on top */
         }
         .sidebar a {
             padding: 10px 15px;
@@ -154,6 +154,7 @@
             bottom: 0;
         }
     </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
     {% load static %}
@@ -168,7 +169,7 @@
             <a href="{% url 'profile' %}">Profile</a>
             <a href="{% url 'select_new_workout' %}">Special Workouts</a>
             <a href="{% url 'your_workouts' %}">Your Workouts</a>
-            <a href="{% url 'profile' %}">Achievements</a>
+            <a href="{% url 'achievements' %}">Achievements</a>
             <a href="{% url 'logout' %}">Sign Out</a>
         {% else %}
             <a href="javascript:void(0)" onclick="openLoginModal()">Sign In</a>
@@ -216,6 +217,9 @@
         <p>&copy; 2025 Training App</p>
     </footer>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         function openSidebar() {
             document.getElementById("sidebar").style.width = "250px";

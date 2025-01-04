@@ -11,9 +11,8 @@
     <div class="modal-content">
         <span class="close" onclick="closeCreateWorkoutModal()">&times;</span>
         <h1>Create Workout</h1>
-        <form id="createWorkoutForm" method="post" action="{% url 'create_workout' %}">
+        <form id="createWorkoutForm">
             {% csrf_token %}
-            {{ form.as_p }}
             <div class="form-group">
                 <div class="form-left">
                     <div class="form-box">
@@ -46,7 +45,7 @@
                     </div>
                 </div>
             </div>
-            <button type="submit">Create Workout</button>
+            <button type="button" onclick="submitCreateWorkoutForm()">Create Workout</button>
         </form>
     </div>
 </div>
@@ -73,14 +72,56 @@
                 </div>
             </div>
         </div>
-        <button class="delete-button" onclick="deleteUserWorkout(currentWorkoutId)">Delete</button>
+        <div class="modal-buttons">
+            <button class="delete-button" onclick="deleteUserWorkout(currentWorkoutId)">Delete</button>
+            <button class="edit-button" id="editButton" onclick="openEditWorkoutModal()">Edit</button>
+            <button class="complete-button" id="completeButton" onclick="completeSpecialWorkout(currentWorkoutId)" style="display: none;">Complete</button>
+        </div>
+    </div>
+</div>
+
+<div id="editWorkoutModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditWorkoutModal()">&times;</span>
+        <h1>Edit Workout</h1>
+        <form id="editWorkoutForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <div class="form-left">
+                    <div class="form-box">
+                        <label for="editTitle">Title:</label>
+                        <input type="text" id="editTitle" name="title" required>
+                    </div>
+                    <div class="form-box">
+                        <label for="editSteps">Steps:</label>
+                        <div id="editStepsContainer"></div>
+                        <button type="button" class="add-step-button" onclick="addEditStep()">+</button>
+                    </div>
+                </div>
+                <div class="form-right">
+                    <div class="form-box">
+                        <label for="editDifficulty">Difficulty:</label>
+                        <select id="editDifficulty" name="difficulty" required>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="form-box">
+                        <label for="editDuration">Duration (hours):</label>
+                        <input type="number" id="editDuration" name="duration" min="0" step="0.1" required>
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="submitEditWorkoutForm()">Save Changes</button>
+        </form>
     </div>
 </div>
 
 <div id="workout-list">
     {% for workout in user_workouts %}
         <div class="workout-item" data-id="{{ workout.id }}">
-            <button class="workout-button" onclick="showWorkoutDetails('{{ workout.title }}', '{{ workout.difficulty }}', '{{ workout.duration }}', '{{ workout.steps|escapejs }}', '{{ workout.id }}')">{{ workout.title }}</button>
+            <button class="workout-button" onclick="showWorkoutDetails('{{ workout.title }}', '{{ workout.difficulty }}', '{{ workout.duration }}', '{{ workout.steps|escapejs }}', '{{ workout.id }}', false)">{{ workout.title }}</button>
         </div>
     {% endfor %}
 </div>
@@ -90,7 +131,7 @@
 <div id="special-workout-list">
     {% for workout in admin_workouts %}
         <div class="workout-item" data-id="{{ workout.id }}">
-            <button class="workout-button" onclick="showWorkoutDetails('{{ workout.title }}', '{{ workout.difficulty }}', '{{ workout.duration }}', '{{ workout.steps|escapejs }}', '{{ workout.id }}')">{{ workout.title }}</button>
+            <button class="workout-button" onclick="showWorkoutDetails('{{ workout.title }}', '{{ workout.difficulty }}', '{{ workout.duration }}', '{{ workout.steps|escapejs }}', '{{ workout.id }}', true)">{{ workout.title }}</button>
         </div>
     {% endfor %}
 </div>
@@ -139,27 +180,173 @@
         document.getElementById("createWorkoutModal").style.display = "none";
     }
 
-    function showWorkoutDetails(title, difficulty, duration, steps, workoutId) {
+    function submitEditWorkoutForm() {
+        const form = document.getElementById('editWorkoutForm');
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (key === 'steps') {
+                if (!data[key]) {
+                    data[key] = [];
+                }
+                data[key].push(value);
+            } else {
+                data[key] = value;
+            }
+        });
+        fetch(`/edit_workout/${currentWorkoutId}/`, {
+            method: 'PUT',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Workout updated successfully');
+                closeEditWorkoutModal();
+                location.reload();
+            } else {
+                alert('Failed to update workout: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating workout:', error);
+        });
+    }
+
+    function showWorkoutDetails(title, difficulty, duration, steps, workoutId, isSpecial) {
         currentWorkoutId = workoutId;
         document.getElementById('workoutDetailsTitle').innerText = title;
         document.getElementById('detailsDifficulty').innerText = difficulty;
         document.getElementById('detailsDuration').innerText = duration;
-        const stepsHtml = steps.split('\n').map((step) => `<li>${step}</li>`).join('');
-        document.getElementById('detailsSteps').innerHTML = `<ol>${stepsHtml}</ol>`;
+        document.getElementById('detailsSteps').innerText = steps;
         document.getElementById('workoutDetailsModal').style.display = 'block';
+
+        if (isSpecial) {
+            document.getElementById('editButton').style.display = 'none';
+            document.getElementById('completeButton').style.display = 'block';
+        } else {
+            document.getElementById('editButton').style.display = 'block';
+            document.getElementById('completeButton').style.display = 'none';
+        }
     }
+
+    function openEditWorkoutModal() {
+        const title = document.getElementById('workoutDetailsTitle').innerText;
+        const difficulty = document.getElementById('detailsDifficulty').innerText;
+        const duration = document.getElementById('detailsDuration').innerText;
+        const steps = document.getElementById('detailsSteps').innerText;
+
+        document.getElementById('editTitle').value = title;
+        document.getElementById('editDifficulty').value = difficulty;
+        document.getElementById('editDuration').value = duration;
+
+        const stepsArray = steps.split('\n');
+        const stepsContainer = document.getElementById('editStepsContainer');
+        stepsContainer.innerHTML = '';
+        stepsArray.forEach((step, index) => {
+            const stepElement = document.createElement('div');
+            stepElement.className = 'step';
+            stepElement.innerHTML = `<span class="step-number">${index + 1}.</span><input type="text" name="steps" value="${step}" required>`;
+            stepsContainer.appendChild(stepElement);
+        });
+
+        document.getElementById('editWorkoutModal').style.display = 'block';
+    }
+
+    function closeEditWorkoutModal() {
+        document.getElementById('editWorkoutModal').style.display = 'none';
+    }
+
+    function submitCreateWorkoutForm() {
+        const form = document.getElementById('createWorkoutForm');
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (key === 'steps') {
+                if (!data[key]) {
+                    data[key] = [];
+                }
+                data[key].push(value);
+            } else {
+                data[key] = value;
+            }
+        });
+        fetch('/create_workout/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Workout created successfully');
+                closeCreateWorkoutModal();
+                location.reload();
+            } else {
+                alert('Failed to create workout: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error creating workout:', error);
+        });
+    }
+
+    function addEditStep() {
+        const stepsContainer = document.getElementById('editStepsContainer');
+        const stepCount = stepsContainer.children.length + 1;
+        const newStep = document.createElement('div');
+        newStep.className = 'step';
+        newStep.innerHTML = `<span class="step-number">${stepCount}.</span><input type="text" name="steps" placeholder="Step ${stepCount}" required>`;
+        stepsContainer.appendChild(newStep);
+    }
+
     function closeWorkoutDetailsModal() {
         document.getElementById('workoutDetailsModal').style.display = 'none';
+    }
+
+    function completeSpecialWorkout(workoutId) {
+        if (confirm('Are you sure you want to complete this workout?')) {
+            fetch(`/complete_special_workout/${workoutId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector(`.workout-item[data-id="${workoutId}"]`).remove();
+                    alert('Workout completed and achievement awarded!');
+                    closeWorkoutDetailsModal();
+                } else {
+                    alert('Failed to complete workout: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error completing workout:', error);
+            });
+        }
     }
 
     window.onclick = function(event) {
         var createModal = document.getElementById("createWorkoutModal");
         var detailsModal = document.getElementById("workoutDetailsModal");
+        var editModal = document.getElementById("editWorkoutModal");
         if (event.target == createModal) {
             createModal.style.display = "none";
         }
         if (event.target == detailsModal) {
             detailsModal.style.display = "none";
+        }
+        if (event.target == editModal) {
+            editModal.style.display = "none";
         }
     }
 </script>
@@ -234,6 +421,11 @@
     .workout-button:hover {
         background-color: #45a049;
     }
+    .modal-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
     .delete-button {
         background-color: #ff4d4d;
         color: white;
@@ -241,12 +433,36 @@
         border-radius: 5px;
         padding: 10px 20px;
         cursor: pointer;
-        display: block;
         max-width: fit-content;
-        margin: 20px auto 0;
     }
     .delete-button:hover {
         background-color: #ff1a1a;
+    }
+    .edit-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        text-decoration: none;
+        text-align: center;
+        max-width: fit-content;
+    }
+    .edit-button:hover {
+        background-color: #45a049;
+    }
+    .complete-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        text-decoration: none;
+        text-align: center;
+        max-width: fit-content;
+    }
+    .complete-button:hover {
+        background-color: #45a049;
     }
     #workoutDetailsTitle {
         max-width: 100%;
@@ -263,4 +479,5 @@
         white-space: normal;
     }
 </style>
+
 {% endblock %}
