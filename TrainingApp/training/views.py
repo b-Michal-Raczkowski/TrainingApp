@@ -1,8 +1,8 @@
-# views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_POST
-from .models import Workout, Achievement, UserWorkout
+from .models import Workout, UserWorkout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, authenticate, login
 from .forms import UserRegistrationForm, WorkoutForm, SpecialWorkoutForm
@@ -10,7 +10,6 @@ from django.contrib.auth.views import LoginView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.admin.views.decorators import staff_member_required
-from .utils import award_achievement
 import re
 import json
 
@@ -85,7 +84,6 @@ def custom_logout_view(request):
     logout(request)
     return redirect('home')
 
-
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
@@ -141,21 +139,9 @@ def your_workouts(request):
     })
 
 @login_required
-def achievements_view(request):
-    user_achievements = Achievement.objects.filter(user=request.user)
-    uncollected_achievements = Achievement.objects.exclude(user=request.user)
-
-    context = {
-        'user_achievements': user_achievements,
-        'uncollected_achievements': uncollected_achievements,
-    }
-    return render(request, 'training/achievements.html', context)
-@login_required
 def profile(request):
-    achievements_count = Achievement.objects.filter(user=request.user).count()
-    return render(request, 'training/profile.html', {
-        'achievements_count': achievements_count
-    })
+    return render(request, 'training/profile.html', {})
+
 @csrf_exempt
 @require_http_methods(["PUT"])
 @login_required
@@ -195,25 +181,9 @@ def edit_workout(request, workout_id):
     else:
         return JsonResponse({'success': False, 'error': form.errors.as_json()})
 
-
-
 def special_workouts(request):
     special_workouts = Workout.objects.filter(is_admin=True)
     return render(request, 'training/special_workouts.html', {'special_workouts': special_workouts})
-@staff_member_required
-@require_POST
-def post_achievement(request, workout_id):
-    workout = get_object_or_404(Workout, id=workout_id)
-    title = request.POST.get('title')
-    description = request.POST.get('description')
-
-    if not title or not description:
-        return JsonResponse({'success': False, 'error': 'Title and description are required'}, status=400)
-
-    award_achievement(workout, title, description)
-    return JsonResponse({'success': True})
-
-
 @require_POST
 @login_required
 def complete_special_workout(request, workout_id):
@@ -222,18 +192,6 @@ def complete_special_workout(request, workout_id):
 
     if user_workout:
         user_workout.delete()
-        award_achievement(request.user, f"Completed {workout.title}",
-                          f"Awarded for completing the special workout: {workout.title}")
         return JsonResponse({'success': True})
     else:
         return JsonResponse({'success': False, 'error': 'Workout not found in your list'})
-
-@login_required
-def your_achievements(request):
-    collected_achievements = Achievement.objects.filter(user=request.user, collected=True)
-    uncollected_achievements = Achievement.objects.filter(user=request.user, collected=False)
-    return render(request, 'training/achievements.html', {
-        'collected_achievements': collected_achievements,
-        'uncollected_achievements': uncollected_achievements
-    })
-

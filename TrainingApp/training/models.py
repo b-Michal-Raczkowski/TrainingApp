@@ -8,15 +8,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-class Achievement(models.Model):
-    date_achieved = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    count = models.IntegerField(null=True, blank=True)
-
-    def __str__(self):
-        return self.title
 
 class Workout(models.Model):
     title = models.CharField(max_length=255)
@@ -26,7 +17,6 @@ class Workout(models.Model):
     is_admin = models.BooleanField(default=False)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    achievement = models.ManyToManyField(Achievement, blank=True)
 
     def __str__(self):
         return self.title

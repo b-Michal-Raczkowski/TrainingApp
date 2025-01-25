@@ -323,7 +323,6 @@
             .then(data => {
                 if (data.success) {
                     document.querySelector(`.workout-item[data-id="${workoutId}"]`).remove();
-                    alert('Workout completed and achievement awarded!');
                     closeWorkoutDetailsModal();
                 } else {
                     alert('Failed to complete workout: ' + data.error);
