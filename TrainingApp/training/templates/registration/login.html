@@ -1,0 +1,49 @@
+{% extends "training/base.html" %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="modal-content">
+    <span class="close" onclick="window.location.href='/'">&times;</span>
+    <h1>Log In</h1>
+    <div id="loginError" style="color: red; display: none;"></div>
+    <form id="loginForm" action="{% url 'login' %}" method="post">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Email or Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <a href="javascript:void(0)" class="sign-up" onclick="window.location.href='{% url 'register' %}'">Sign up for a new account</a>
+        <div class="remember-me">
+            <input type="checkbox" id="remember-me">
+            <label for="remember-me">Remember me</label>
+        </div>
+        <button type="submit">LOG IN</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(this);
+        fetch("{% url 'login' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/'; 
+            } else {
+                document.getElementById('loginError').innerText = 'Login failed: ' + data.error;
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+    });
+</script>
+{% endblock %}

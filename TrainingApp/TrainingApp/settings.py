@@ -26,9 +26,9 @@ SECRET_KEY = "django-insecure-by870jm^veaucyfit$q+cxmlf9#novhs3gx&ljy+8sv)4*od3-
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = 'login'
 
 
 # Application definition
@@ -81,8 +81,8 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'training.backends.EmailOrUsernameModelBackend',
 )
-
-
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 600
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [

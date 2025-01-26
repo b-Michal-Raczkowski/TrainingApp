@@ -2,7 +2,7 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>Profile</title>
@@ -23,19 +23,37 @@
             font-size: 18px;
             color: #333;
         }
+        .achievements {
+            margin-top: 30px;
+        }
+        .achievements ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .achievements li {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
-
-
     <div class="profile-container">
         <div class="profile-info">
             <p><strong>Username:</strong> {{ user.username }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
             <p><strong>Account Created:</strong> {{ user.date_joined }}</p>
-            <p><strong>Achievements Count:</strong> {{ achievements_count }}</p>
+            <p><strong>Achievements Count:</strong> {{ user.profile.achievements.count }}</p>
+        </div>
+        <div class="achievements">
+            <h2>Your Achievements</h2>
+            <ul>
+                {% for achievement in user.profile.achievements.all %}
+                    <li>{{ achievement.title }}: {{ achievement.description }}</li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
+</body>
+</html>
 {% endblock %}
-
-
